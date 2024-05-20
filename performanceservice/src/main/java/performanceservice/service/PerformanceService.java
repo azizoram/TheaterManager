@@ -2,6 +2,7 @@ package performanceservice.service;
 
 import performanceservice.dto.PerformanceDTO;
 import performanceservice.dto.PerformanceRequest;
+import performanceservice.dto.WorkShiftRequest;
 import performanceservice.exception.ResourceNotFoundException;
 import performanceservice.repository.PerformanceRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import performanceservice.model.Performance;
 import workshiftservice.dto.WorkShiftResponse;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,12 +24,6 @@ import java.util.stream.Collectors;
 public class PerformanceService {
     private final WebClient webClient;
     private final PerformanceRepository performanceRepository;
-
-//    @Autowired
-//    public PerformanceService(WebClient webClient, PerformanceRepository performanceRepository) {
-//        this.webClient = webClient;
-//        this.performanceRepository = performanceRepository;
-//    }
 
     // Mb useless method, because we can get shifts from performance
     public PerformanceDTO getPerformanceWithShifts(Long performanceId) {
@@ -64,7 +61,7 @@ public class PerformanceService {
                 .name(workShift.getName())
                 .description(workShift.getDescription())
                 .start(workShift.getStart())
-                .end(workShift.getEndTime())
+                .endTime(workShift.getEndTime())
                 .capacity(workShift.getCapacity())
                 .requiredRoles(workShift.getRequiredRoles())
                 .employees(workShift.getEmployees())
@@ -94,16 +91,38 @@ public class PerformanceService {
     }
 
     public void createPerformance(PerformanceRequest performanceRequest) {
+        if (performanceRequest.getStart().isAfter(performanceRequest.getEndTime())) {
+            throw new RuntimeException("Start date is after end date");
+        }
+        Map<LocalDateTime, LocalDateTime> dates = Map.of(performanceRequest.getStart(), performanceRequest.getEndTime());
         Performance performance = Performance.builder()
         .name(performanceRequest.getName())
         .description(performanceRequest.getDescription())
         .duration(performanceRequest.getDuration())
+                .dates(dates)
                 .build();
         performanceRepository.save(performance);
     }
 
     public Performance addShiftToPerformance(Long performanceId, Long shiftId) {
         Performance performance = getPerformance(performanceId);
+        WorkShiftRequest shift = webClient
+                .get()
+                .uri("http://localhost:8081/api/workshift/" + shiftId)
+                .retrieve()
+                .bodyToMono(WorkShiftRequest.class)
+                .block();
+        System.out.println(shift.toString());
+        if (shift == null) {
+            throw new ResourceNotFoundException("Shift not found");
+        }
+        else if (performance.getWorkShiftsIds().contains(shiftId)) {
+            throw new RuntimeException("Shift already added to performance");
+        }
+        else if (shift.getStart().isBefore(performance.getDates().keySet().stream().findFirst().get()) ||
+                shift.getEnd().isAfter(performance.getDates().values().stream().findFirst().get())) {
+            throw new RuntimeException("Shift is not in performance dates");
+        }
         performance.getWorkShiftsIds().add(shiftId);
         return performanceRepository.save(performance);
     }
@@ -112,5 +131,17 @@ public class PerformanceService {
         Performance performance = getPerformance(performanceId);
         performance.getWorkShiftsIds().remove(shiftId);
         return performanceRepository.save(performance);
+    }
+
+    public String getPerformanceName(Long performanceId) {
+        return performanceRepository.findById(performanceId).orElseThrow(() -> new ResourceNotFoundException("Performance not found")).getName();
+    }
+
+    public String getInfoAboutPerformance(Long performanceId) {
+        Performance performance = performanceRepository.findById(performanceId).orElseThrow(() -> new ResourceNotFoundException("Performance not found"));
+        return "Performance name: " + performance.getName() + "\n" +
+                "Performance description: " + performance.getDescription() + "\n" +
+                "Performance duration: " + performance.getDuration() + "\n" +
+                "Performance dates: " + performance.getDates();
     }
 }

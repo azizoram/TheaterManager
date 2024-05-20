@@ -1,7 +1,13 @@
 package workshiftservice.service;
 
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.reactive.function.client.WebClient;
+import workshiftservice.dto.EmployeesResponse;
 import workshiftservice.dto.WorkShiftRequest;
 import workshiftservice.dto.WorkShiftResponse;
+import workshiftservice.exception.NoSuchShiftException;
 import workshiftservice.model.WorkShift;
 import workshiftservice.repository.WorkShiftRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,12 +17,16 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.stream.Collectors.toList;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class WorkShiftService {
 
     private final WorkShiftRepository workShiftRepository;
+
+    private final WebClient webClient;
 
     public void createWorkShift(WorkShiftRequest workShiftRequest) {
         WorkShift workShift = WorkShift.builder()
@@ -41,7 +51,7 @@ public class WorkShiftService {
                 .name(workShift.getName())
                 .description(workShift.getDescription())
                 .start(workShift.getStart())
-                .end(workShift.getEndTime())
+                .endTime(workShift.getEndTime())
                 .capacity(workShift.getCapacity())
                 .requiredRoles(workShift.getRequiredRoles())
                 .employees(workShift.getEmployees())
@@ -51,7 +61,7 @@ public class WorkShiftService {
     public WorkShiftResponse getWorkShift(Long id) {
         return workShiftRepository.findById(id)
                 .map(this::mapToWorkShiftResponse)
-                .orElseThrow();
+                .orElseThrow(() -> new NoSuchShiftException("Shift not found"));
     }
 
     public void deleteWorkShift(Long id) {
@@ -71,12 +81,18 @@ public class WorkShiftService {
 
     public void addEmployee(Long id, String email) {
         WorkShift workShift = workShiftRepository.findById(id).orElseThrow();
+        if (workShift.getEmployees().contains(email)) {
+            throw new RuntimeException("Employee already in shift");
+        }
         workShift.getEmployees().add(email);
         workShiftRepository.save(workShift);
     }
 
     public void removeEmployee(Long id, String email) {
         WorkShift workShift = workShiftRepository.findById(id).orElseThrow();
+        if (!workShift.getEmployees().contains(email)) {
+            throw new RuntimeException("Employee not in shift");
+        }
         workShift.getEmployees().remove(email);
         workShiftRepository.save(workShift);
     }
@@ -111,8 +127,22 @@ public class WorkShiftService {
         return workShift.toString();
     }
 
-    public void exchangeShifts(Long id1, Long id2, String email) {
+    public List<EmployeesResponse> getAllEmployeeFromShift(Long id) {
+        WorkShift workShift = workShiftRepository.findById(id).orElseThrow();
+        return workShift.getEmployees().stream().map(employee -> webClient
+                .get()
+                .uri("http://localhost:8082/api/employee/" + employee)
+                .retrieve()
+                .bodyToMono(EmployeesResponse.class)
+                .block())
+                .collect(toList());
     }
 
+    public List<WorkShiftResponse> getShiftsByEmployee(String email) {
+        return workShiftRepository.findAll().stream()
+                .filter(workShift -> workShift.getEmployees().contains(email))
+                .map(this::mapToWorkShiftResponse)
+                .toList();
+    }
 
 }

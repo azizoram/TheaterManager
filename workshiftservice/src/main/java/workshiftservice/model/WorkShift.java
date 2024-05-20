@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,4 +35,8 @@ public class WorkShift {
     @CollectionTable(name = "workshift_employees", joinColumns = @JoinColumn(name = "shift_id"))
     @Column(name = "employee_email")
     private List<String> employees;
+
+    public List<String> getEmployees() {
+        return employees == null ? new ArrayList<>() : employees;
+    }
 }

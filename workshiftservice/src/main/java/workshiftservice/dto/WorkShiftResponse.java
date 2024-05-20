@@ -17,7 +17,7 @@ public class WorkShiftResponse {
     private String name;
     private String description;
     private LocalDateTime start;
-    private LocalDateTime end;
+    private LocalDateTime endTime;
     private int capacity;
     private Map<String, Integer> requiredRoles;
     private List<String> employees;

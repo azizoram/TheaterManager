@@ -12,7 +12,7 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShiftResponse {
+public class WorkShiftRequest {
 
     private String name;
     private String description;

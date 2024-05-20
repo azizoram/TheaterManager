@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -14,4 +16,6 @@ public class PerformanceRequest {
     private String description;
     private Integer duration;
     private Long[] workShiftsIds;
+    private LocalDateTime start;
+    private LocalDateTime endTime;
 }
