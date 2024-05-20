@@ -1,0 +1,34 @@
+version: '3.5'
+
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+
+  postgres_performance:
+    container_name: performance_postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres_performance
+    ports:
+      - "5051:5432"
+    restart: unless-stopped
+
+#  server:
+#    build: ./workshiftservice
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5434/postgres
+#
+#volumes:
+#  postgres_data:
