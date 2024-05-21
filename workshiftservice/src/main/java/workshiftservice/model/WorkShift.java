@@ -34,6 +34,7 @@ public class WorkShift {
     @ElementCollection
     @CollectionTable(name = "workshift_employees", joinColumns = @JoinColumn(name = "shift_id"))
     @Column(name = "employee_email")
+    // TODO change to employee id
     private List<String> employees;
 
     public List<String> getEmployees() {
