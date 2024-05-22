@@ -22,5 +22,5 @@ public class WorkShiftDTO {
     private LocalDateTime endTime;
     private int capacity;
     private Map<String, Integer> requiredRoles;
-    private List<String> employees;
+    private Map<Long, String> employees;
 }

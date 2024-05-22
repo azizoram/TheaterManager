@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import userservice.dto.PerformanceDTO;
+import userservice.dto.UserDTO;
 import userservice.dto.WorkshiftDTO;
 
 import java.util.List;
@@ -24,11 +25,11 @@ public class ExternalService {
     private static final String workshift_api = "http://localhost:8081/api/workshift/";
     private static final String performance_api = "http://localhost:8082/api/performances/";
 
-    private final WebClient webClient;
+    private final WebClient.Builder webClient;
 
     public List<WorkshiftDTO> getWorkShifts(Set<Long> workShifts) {
         return workShifts.stream()
-                .map(shiftId -> webClient
+                .map(shiftId -> webClient.build()
                         .get()
                         .uri(workshift_api + shiftId)
                         .retrieve()
@@ -40,14 +41,14 @@ public class ExternalService {
 
     public List<PerformanceDTO> getPerformances(Set<Long> workShifts) {
         return workShifts.stream()
-                .map(shiftId -> webClient
+                .map(shiftId -> webClient.build()
                         .get()
                         .uri(workshift_api + shiftId)
                         .retrieve()
                         .bodyToMono(WorkshiftDTO.class)
                         .block()).filter(Objects::nonNull)
                 .map(WorkshiftDTO::getPerformanceId).distinct().map(
-                        performanceId -> webClient
+                        performanceId -> webClient.build()
                                 .get()
                                 .uri(performance_api + performanceId)
                                 .retrieve()
@@ -55,4 +56,15 @@ public class ExternalService {
                                 .block()).toList();
 
     }
+
+    public List<UserDTO> getAllEmployeeFromShift(Long id) {
+        return webClient.build()
+                .get()
+                .uri(workshift_api + id + "/employees")
+                .retrieve()
+                .bodyToFlux(UserDTO.class)
+                .collectList()
+                .block();
+    }
+
 }

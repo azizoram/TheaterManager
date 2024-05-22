@@ -1,6 +1,7 @@
 package userservice.controller;
 
 
+import lombok.extern.slf4j.XSlf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import userservice.dto.UserDTO;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/api/user")
@@ -23,6 +25,7 @@ public class UserController {
       private final RoleService roleService;
     private final PermissionService permissionService;
     private final ExternalService externalService;
+    private final Logger log = Logger.getLogger(UserController.class.getName());
     @Lazy
     private final UserService userService;
 
@@ -43,6 +46,7 @@ public class UserController {
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
     public List<UserDTO> getAllUsers() {
+        log.info("Getting all users");
         return userService.getAllUsers();
     }
 
@@ -67,6 +71,12 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public void addRoleToUSer(@PathVariable Long id, @RequestBody HashMap<String, String> role) {
         roleService.addRole(id, role.get("role"));
+    }
+
+    @PostMapping("/employees")
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDTO> getAllEmployeeFromShift(@RequestBody List<Long> employyIds) {
+        return userService.getAllUserWithsIds(employyIds);
     }
 
     @PostMapping("/populateRoles")
@@ -136,36 +146,5 @@ public class UserController {
         return user.getUserPermissions().stream().map(permission -> permission.getName().toString()).toList();
     }
 
-    @PostMapping("addWorkShift/{id}/workShift/{workShiftId}")
-    @ResponseStatus(HttpStatus.OK)
-    public void addWorkShiftToUser(@PathVariable Long id, @PathVariable Long workShiftId) {
-        userService.addWorkShiftToUser(id, workShiftId);
-    }
 
-    @DeleteMapping("removeWorkShift/{id}/workShift/{workShiftId}")
-    @ResponseStatus(HttpStatus.OK)
-    public void removeWorkShiftFromUser(@PathVariable Long id, @PathVariable Long workShiftId) {
-        userService.removeWorkShiftFromUser(id, workShiftId);
-    }
-
-    @GetMapping("/{id}/workShiftIDs")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Long> getWorkShifts(@PathVariable Long id) {
-        User user = userService.findById(id);
-        return user.getWorkShifts().stream().toList();
-    }
-
-    @GetMapping("find/{id}/workShifts")
-    @ResponseStatus(HttpStatus.OK)
-    public List<WorkshiftDTO> getWorkShiftList(@PathVariable Long id) {
-        User user = userService.findById(id);
-        return externalService.getWorkShifts(user.getWorkShifts());
-    }
-
-    @GetMapping("find/{id}/performances")
-    @ResponseStatus(HttpStatus.OK)
-    public List<PerformanceDTO> getPerformanceList(@PathVariable Long id) {
-        User user = userService.findById(id);
-        return externalService.getPerformances(user.getWorkShifts());
-    }
 }

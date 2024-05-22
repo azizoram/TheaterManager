@@ -1,12 +1,10 @@
 package workshiftservice.service;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import workshiftservice.dto.EmployeesResponse;
-import workshiftservice.dto.WorkShiftDTO;
 import workshiftservice.dto.WorkShiftDTO;
 import workshiftservice.exception.NoSuchShiftException;
 import workshiftservice.model.WorkShift;
@@ -17,8 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +26,8 @@ public class WorkShiftService {
 
     private final WorkShiftRepository workShiftRepository;
 
-    private final WebClient webClient;
+//    private final WebClient webClient; odnazdy ja tak rygnul azh sam v ahuii byl
+    private final WebClient.Builder webClientBuilder;
 
     public void createWorkShift(WorkShiftDTO WorkShiftDTO) {
         WorkShift workShift = WorkShift.builder()
@@ -84,21 +83,21 @@ public class WorkShiftService {
         workShiftRepository.save(workShift);
     }
 
-    public void addEmployee(Long id, String email) {
+    public void addEmployee(Long id, Long employeeId, String role) {
         WorkShift workShift = workShiftRepository.findById(id).orElseThrow();
-        if (workShift.getEmployees().contains(email)) {
+        if (workShift.getEmployees().containsKey(employeeId)) {
             throw new RuntimeException("Employee already in shift");
         }
-        workShift.getEmployees().add(email);
+        workShift.getEmployees().put(employeeId, role);
         workShiftRepository.save(workShift);
     }
 
-    public void removeEmployee(Long id, String email) {
+    public void removeEmployee(Long id, Long employeeId) {
         WorkShift workShift = workShiftRepository.findById(id).orElseThrow();
-        if (!workShift.getEmployees().contains(email)) {
+        if (!workShift.getEmployees().containsKey(employeeId)) {
             throw new RuntimeException("Employee not in shift");
         }
-        workShift.getEmployees().remove(email);
+        workShift.getEmployees().remove(employeeId);
         workShiftRepository.save(workShift);
     }
 
@@ -133,19 +132,27 @@ public class WorkShiftService {
     }
 
     public List<EmployeesResponse> getAllEmployeeFromShift(Long id) {
-        WorkShift workShift = workShiftRepository.findById(id).orElseThrow();
-        return workShift.getEmployees().stream().map(employee -> webClient
-                .get()
-                .uri("http://localhost:8082/api/employee/" + employee)
+
+        List<Long> employeesIdList = workShiftRepository.findById(id).orElseThrow().getEmployees().keySet().stream().toList();
+//        String employeesJson = objectMapper.writeValueAsString(employeesIdList);
+        List<EmployeesResponse> employeesResponses = webClientBuilder.build()
+                .post()
+                .uri("http://userservice/api/user/employees")
+                .bodyValue(employeesIdList)
                 .retrieve()
-                .bodyToMono(EmployeesResponse.class)
-                .block())
-                .collect(toList());
+                .bodyToMono(new ParameterizedTypeReference<List<EmployeesResponse>>() {})
+                .block();
+
+        return employeesResponses.stream().map(employeesResponse -> {
+            employeesResponse.setRole(workShiftRepository.findById(id).orElseThrow().getEmployees().get(employeesResponse.getId()));
+            return employeesResponse;
+        }).toList();
+
     }
 
-    public List<WorkShiftDTO> getShiftsByEmployee(String email) {
+    public List<WorkShiftDTO> getShiftsByEmployee(Long employeeId) {
         return workShiftRepository.findAll().stream()
-                .filter(workShift -> workShift.getEmployees().contains(email))
+                .filter(workShift -> workShift.getEmployees().containsKey(employeeId))
                 .map(this::mapToWorkShiftDTO)
                 .toList();
     }

@@ -43,3 +43,13 @@ services:
 #
 #volumes:
 #  postgres_data:
+
+  discovery-server:
+#    image: microservices-tutorial/discovery-server:latest
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+#    depends_on:
+#      - zipkin

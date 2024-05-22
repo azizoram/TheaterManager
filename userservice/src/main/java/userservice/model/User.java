@@ -51,11 +51,6 @@ public class User {
     )
     private Set<UserRole> userRoles = new HashSet<>();
 
-    @ElementCollection
-    @CollectionTable(name = "user_work_shifts", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "work_shift")
-    private Set<Long> workShifts = new HashSet<>();
-
     public Set<UserPermission>  getUserPermissions() {
         if (userPermissions == null) {
             userPermissions = new HashSet<>();

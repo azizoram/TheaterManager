@@ -1,5 +1,7 @@
 package workshiftservice.controller;
 
+import org.springframework.http.ResponseEntity;
+import workshiftservice.dto.EmployeesResponse;
 import workshiftservice.dto.WorkShiftDTO;
 import workshiftservice.dto.WorkShiftDTO;
 
@@ -48,10 +50,10 @@ public class WorkShiftController {
         workShiftService.updateWorkShift(id, WorkShiftDTO);
     }
 
-    @PostMapping("/{id}/{employeeEmail}")
+    @PostMapping("/{shifId}/{employeeId}/{role}")
     @ResponseStatus(HttpStatus.OK)
-    public void addEmployeeToWorkShift(@PathVariable Long id, @PathVariable String employeeEmail) {
-        workShiftService.addEmployee(id, employeeEmail);
+    public void addEmployeeToWorkShift(@PathVariable Long shifId, @PathVariable Long employeeId, @PathVariable String role) {
+        workShiftService.addEmployee(shifId, employeeId, role);
     }
 
     @PostMapping("/{id}/addRole")
@@ -60,10 +62,10 @@ public class WorkShiftController {
         workShiftService.addRole(id, role);
     }
 
-    @DeleteMapping("/{id}/{employeeEmail}")
+    @DeleteMapping("/{id}/{employeeId}")
     @ResponseStatus(HttpStatus.OK)
-    public void removeEmployeeFromWorkShift(@PathVariable Long id, @PathVariable String employeeEmail) {
-        workShiftService.removeEmployee(id, employeeEmail);
+    public void removeEmployeeFromWorkShift(@PathVariable Long id, @PathVariable Long employeeId) {
+        workShiftService.removeEmployee(id, employeeId);
     }
 
     @DeleteMapping("/{id}/removeRole")
@@ -78,5 +80,11 @@ public class WorkShiftController {
         return workShiftService.getWorkShiftInfo(id);
     }
 
+    @GetMapping("/employees/{shiftId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<EmployeesResponse> getAllEmployeesFromShift(@PathVariable Long shiftId) {
+        return workShiftService.getAllEmployeeFromShift(shiftId);
+    }
 
 }
+

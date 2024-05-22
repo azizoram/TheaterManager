@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,11 +37,10 @@ public class WorkShift {
 
     @ElementCollection
     @CollectionTable(name = "workshift_employees", joinColumns = @JoinColumn(name = "shift_id"))
-    @Column(name = "employee_email")
-    // TODO change to employee id
-    private List<String> employees;
+    @Column(name = "capacity")
+    private Map<Long, String> employeesCapacity;
 
-    public List<String> getEmployees() {
-        return employees == null ? new ArrayList<>() : employees;
+    public Map<Long, String> getEmployees() {
+        return employeesCapacity == null ? new HashMap<>() : employeesCapacity;
     }
 }

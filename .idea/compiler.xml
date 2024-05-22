@@ -9,12 +9,14 @@
         <outputRelativeToContentRoot value="true" />
         <module name="performanceservice" />
         <module name="workshiftservice" />
+        <module name="discoveryserver" />
         <module name="userservice" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="discoveryserver" options="-parameters" />
       <module name="performanceservice" options="-parameters" />
       <module name="userservice" options="-parameters" />
       <module name="workshiftservice" options="-parameters" />

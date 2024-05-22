@@ -24,7 +24,6 @@ public class UserDTO implements Serializable {
     private String phone;
     private List<String> userPermissions = new ArrayList<>();
     private List<String> userRoles = new ArrayList<>();
-    private List<Long> workShifts = new ArrayList<>();
     public UserDTO(User user){
         this.id = user.getId();
         this.name = user.getName();
@@ -35,6 +34,5 @@ public class UserDTO implements Serializable {
         this.phone = user.getPhone();
         this.userPermissions = user.getUserPermissions().stream().map(userPermission -> userPermission.getName().toString()).toList();
         this.userRoles = user.getUserRoles().stream().map(userRole -> userRole.getName().toString()).toList();
-        this.workShifts = new ArrayList<>(user.getWorkShifts());
     }
 }

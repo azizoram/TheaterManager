@@ -13,4 +13,5 @@ public class EmployeesResponse {
     String name;
     String email;
     String role;
+    Long id;
 }

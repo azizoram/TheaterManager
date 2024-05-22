@@ -11,6 +11,7 @@ import userservice.repository.UserRepository;
 import userservice.utils.Utility;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +22,7 @@ public class UserService {
     private final PermissionService permissionService;
     private final RoleService roleService;
     private final UserRepository userRepository;
-    private final WebClient webClient;
+    private final WebClient.Builder webClient;
 
     public void saveOrUpdate(User user) {
         userRepository.save(user);
@@ -74,15 +75,7 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
-    public void addWorkShiftToUser(Long id, Long workShiftId) {
-        User user = Utility.tryFindUser(id, this);
-        user.getWorkShifts().add(workShiftId);
-        userRepository.save(user);
-    }
-
-    public void removeWorkShiftFromUser(Long id, Long workShiftId) {
-        User user = Utility.tryFindUser(id, this);
-        user.getWorkShifts().remove(workShiftId);
-        userRepository.save(user);
+    public List<UserDTO> getAllUserWithsIds(List<Long> employyIds) {
+        return employyIds.stream().map(this::getUserWithId).filter(Objects::nonNull).toList();
     }
 }
