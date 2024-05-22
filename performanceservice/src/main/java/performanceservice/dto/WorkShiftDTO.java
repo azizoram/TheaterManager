@@ -12,12 +12,12 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorkShiftRequest {
+public class WorkShiftDTO {
 
     private String name;
     private String description;
     private LocalDateTime start;
-    private LocalDateTime end;
+    private LocalDateTime endTime;
     private int capacity;
     private Map<String, Integer> requiredRoles;
     private List<String> employees;

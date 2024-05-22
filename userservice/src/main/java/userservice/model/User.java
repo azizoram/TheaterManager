@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "tm_user")
@@ -33,10 +35,62 @@ public class User {
 
     private String phone;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    private List<UserPermission> userPermissions = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "user_user_permission",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<UserPermission> userPermissions = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    private List<UserRole> userRoles = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "user_user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<UserRole> userRoles = new HashSet<>();
 
+    @ElementCollection
+    @CollectionTable(name = "user_work_shifts", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "work_shift")
+    private Set<Long> workShifts = new HashSet<>();
+
+    public Set<UserPermission>  getUserPermissions() {
+        if (userPermissions == null) {
+            userPermissions = new HashSet<>();
+        }
+        return userPermissions;
+    }
+
+
+    public Set<UserRole>  getUserRoles() {
+        if (userRoles == null) {
+            userRoles = new HashSet<>();
+        }
+        return userRoles;
+    }
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", login='" + login + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", phone='" + phone + '\'' +
+                '}';
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return id.equals(user.id);
+    }
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

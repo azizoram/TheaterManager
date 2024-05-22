@@ -13,7 +13,9 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorkShiftResponse {
+public class WorkShiftDTO {
+    private Long id;
+    private Long performanceId;
     private String name;
     private String description;
     private LocalDateTime start;

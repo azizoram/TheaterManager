@@ -23,6 +23,17 @@ services:
       - "5051:5432"
     restart: unless-stopped
 
+  postgres_userservice:
+    container_name: userservice_postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/userservice
+    ports:
+      - "6051:5432"
+    restart: unless-stopped
+
 #  server:
 #    build: ./workshiftservice
 #    ports:

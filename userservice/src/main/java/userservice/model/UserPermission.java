@@ -7,8 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "user_permission")
@@ -21,7 +21,9 @@ public class UserPermission {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private Long id;
-    @ManyToMany
-    @JoinTable(
-    private List<User> users = new ArrayList<>();
+
+    private UserPermissionEnum name;
+
+    @ManyToMany(mappedBy = "userPermissions")
+    private Set<User> users = new HashSet<>();
 }

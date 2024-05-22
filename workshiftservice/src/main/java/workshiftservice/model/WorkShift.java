@@ -25,6 +25,9 @@ public class WorkShift {
     private LocalDateTime endTime;
     private int capacity;
 
+    @Column(name = "performance_id")
+    private Long performanceId;
+
     @ElementCollection
     @CollectionTable(name = "workshift_roles", joinColumns = @JoinColumn(name = "shift_id"))
     @MapKeyColumn(name = "role")

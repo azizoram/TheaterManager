@@ -7,7 +7,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 @Entity
 @Table(name = "user_role")
 @AllArgsConstructor
@@ -20,8 +23,7 @@ public class UserRole {
     @Column(name = "id")
     private Long id;
 
-    private UserRoleEnum role;
-    @ManyToMany(mappedBy = "role")
-    private List<User> users = new ArrayList<>();
-
+    private UserRoleEnum name;
+    @ManyToMany(mappedBy = "userRoles")
+    private Set<User> users = new HashSet<>();
 }

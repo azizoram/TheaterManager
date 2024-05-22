@@ -2,6 +2,7 @@ package performanceservice.controller;
 
 import performanceservice.dto.PerformanceDTO;
 import performanceservice.dto.PerformanceRequest;
+import performanceservice.dto.WorkShiftDTO;
 import performanceservice.model.Performance;
 import performanceservice.service.PerformanceService;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import workshiftservice.dto.WorkShiftResponse;
 
 import java.util.List;
 
@@ -64,7 +64,7 @@ public class PerformanceController {
     }
 
     @GetMapping("/shifts/{performanceId}")
-    public List<WorkShiftResponse> getShiftsByPerformanceId(@PathVariable Long performanceId) {
+    public List<WorkShiftDTO> getShiftsByPerformanceId(@PathVariable Long performanceId) {
         return performanceService.getShiftsByPerformanceId(performanceId);
     }
 }

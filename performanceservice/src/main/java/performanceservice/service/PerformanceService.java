@@ -2,7 +2,7 @@ package performanceservice.service;
 
 import performanceservice.dto.PerformanceDTO;
 import performanceservice.dto.PerformanceRequest;
-import performanceservice.dto.WorkShiftRequest;
+import performanceservice.dto.WorkShiftDTO;
 import performanceservice.exception.ResourceNotFoundException;
 import performanceservice.repository.PerformanceRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,6 @@ import performanceservice.model.WorkShift;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import performanceservice.model.Performance;
-import workshiftservice.dto.WorkShiftResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,7 +42,7 @@ public class PerformanceService {
         return new PerformanceDTO(performance, workShifts);
     }
 
-    public List<WorkShiftResponse> getShiftsByPerformanceId(Long performanceId) {
+    public List<WorkShiftDTO> getShiftsByPerformanceId(Long performanceId) {
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Performance not found"));
 
@@ -52,12 +51,12 @@ public class PerformanceService {
                         .get()
                         .uri("http://localhost:8081/api/workshift/" + shiftId)
                         .retrieve()
-                        .bodyToMono(WorkShiftResponse.class)
+                        .bodyToMono(WorkShiftDTO.class)
                         .block())
                 .collect(Collectors.toList());
     }
-    private WorkShiftResponse mapToWorkShiftResponse(workshiftservice.model.WorkShift workShift) {
-        return WorkShiftResponse.builder()
+    private WorkShiftDTO mapToWorkShiftDTO(WorkShift workShift) {
+        return WorkShiftDTO.builder()
                 .name(workShift.getName())
                 .description(workShift.getDescription())
                 .start(workShift.getStart())
@@ -106,11 +105,11 @@ public class PerformanceService {
 
     public Performance addShiftToPerformance(Long performanceId, Long shiftId) {
         Performance performance = getPerformance(performanceId);
-        WorkShiftRequest shift = webClient
+        WorkShiftDTO shift = webClient
                 .get()
                 .uri("http://localhost:8081/api/workshift/" + shiftId)
                 .retrieve()
-                .bodyToMono(WorkShiftRequest.class)
+                .bodyToMono(WorkShiftDTO.class)
                 .block();
         System.out.println(shift.toString());
         if (shift == null) {
@@ -120,7 +119,7 @@ public class PerformanceService {
             throw new RuntimeException("Shift already added to performance");
         }
         else if (shift.getStart().isBefore(performance.getDates().keySet().stream().findFirst().get()) ||
-                shift.getEnd().isAfter(performance.getDates().values().stream().findFirst().get())) {
+                shift.getEndTime().isAfter(performance.getDates().values().stream().findFirst().get())) {
             throw new RuntimeException("Shift is not in performance dates");
         }
         performance.getWorkShiftsIds().add(shiftId);

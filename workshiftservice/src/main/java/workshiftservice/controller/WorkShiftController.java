@@ -1,7 +1,7 @@
 package workshiftservice.controller;
 
-import workshiftservice.dto.WorkShiftRequest;
-import workshiftservice.dto.WorkShiftResponse;
+import workshiftservice.dto.WorkShiftDTO;
+import workshiftservice.dto.WorkShiftDTO;
 
 import workshiftservice.service.WorkShiftService;
 import lombok.RequiredArgsConstructor;
@@ -20,19 +20,19 @@ public class WorkShiftController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createWorkShift(@RequestBody WorkShiftRequest workShiftRequest) {
-        workShiftService.createWorkShift(workShiftRequest);
+    public void createWorkShift(@RequestBody WorkShiftDTO WorkShiftDTO) {
+        workShiftService.createWorkShift(WorkShiftDTO);
     }
 
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
-    public List<WorkShiftResponse> getAllWorkShifts() {
+    public List<WorkShiftDTO> getAllWorkShifts() {
         return workShiftService.getAllWorkShifts();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public WorkShiftResponse getWorkShift(@PathVariable Long id) {
+    public WorkShiftDTO getWorkShift(@PathVariable Long id) {
         return workShiftService.getWorkShift(id);
     }
 
@@ -44,8 +44,8 @@ public class WorkShiftController {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void updateWorkShift(@PathVariable Long id, @RequestBody WorkShiftRequest workShiftRequest) {
-        workShiftService.updateWorkShift(id, workShiftRequest);
+    public void updateWorkShift(@PathVariable Long id, @RequestBody WorkShiftDTO WorkShiftDTO) {
+        workShiftService.updateWorkShift(id, WorkShiftDTO);
     }
 
     @PostMapping("/{id}/{employeeEmail}")

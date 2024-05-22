@@ -3,10 +3,11 @@ package workshiftservice.service;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import workshiftservice.dto.EmployeesResponse;
-import workshiftservice.dto.WorkShiftRequest;
-import workshiftservice.dto.WorkShiftResponse;
+import workshiftservice.dto.WorkShiftDTO;
+import workshiftservice.dto.WorkShiftDTO;
 import workshiftservice.exception.NoSuchShiftException;
 import workshiftservice.model.WorkShift;
 import workshiftservice.repository.WorkShiftRepository;
@@ -22,32 +23,36 @@ import static java.util.stream.Collectors.toList;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class WorkShiftService {
 
     private final WorkShiftRepository workShiftRepository;
 
     private final WebClient webClient;
 
-    public void createWorkShift(WorkShiftRequest workShiftRequest) {
+    public void createWorkShift(WorkShiftDTO WorkShiftDTO) {
         WorkShift workShift = WorkShift.builder()
-                .name(workShiftRequest.getName())
-                .description(workShiftRequest.getDescription())
-                .start(workShiftRequest.getStart())
-                .endTime(workShiftRequest.getEndTime())
-                .capacity(workShiftRequest.getCapacity())
+                .performanceId(WorkShiftDTO.getPerformanceId())
+                .name(WorkShiftDTO.getName())
+                .description(WorkShiftDTO.getDescription())
+                .start(WorkShiftDTO.getStart())
+                .endTime(WorkShiftDTO.getEndTime())
+                .capacity(WorkShiftDTO.getCapacity())
                 .build();
         workShiftRepository.save(workShift);
     }
 
-    public List<WorkShiftResponse> getAllWorkShifts() {
+    public List<WorkShiftDTO> getAllWorkShifts() {
         List<WorkShift> shifts = workShiftRepository.findAll();
         return shifts.stream()
-                .map(this::mapToWorkShiftResponse)
+                .map(this::mapToWorkShiftDTO)
                 .toList();
     }
 
-    private WorkShiftResponse mapToWorkShiftResponse(WorkShift workShift) {
-        return WorkShiftResponse.builder()
+    private WorkShiftDTO mapToWorkShiftDTO(WorkShift workShift) {
+        return WorkShiftDTO.builder()
+                .id(workShift.getId())
+                .performanceId(workShift.getPerformanceId())
                 .name(workShift.getName())
                 .description(workShift.getDescription())
                 .start(workShift.getStart())
@@ -58,9 +63,9 @@ public class WorkShiftService {
                 .build();
     }
 
-    public WorkShiftResponse getWorkShift(Long id) {
+    public WorkShiftDTO getWorkShift(Long id) {
         return workShiftRepository.findById(id)
-                .map(this::mapToWorkShiftResponse)
+                .map(this::mapToWorkShiftDTO)
                 .orElseThrow(() -> new NoSuchShiftException("Shift not found"));
     }
 
@@ -69,13 +74,13 @@ public class WorkShiftService {
     }
 
 
-    public void updateWorkShift(Long id, WorkShiftRequest workShiftRequest) {
+    public void updateWorkShift(Long id, WorkShiftDTO WorkShiftDTO) {
         WorkShift workShift = workShiftRepository.findById(id).orElseThrow();
-        workShift.setName(workShiftRequest.getName());
-        workShift.setDescription(workShiftRequest.getDescription());
-        workShift.setStart(workShiftRequest.getStart());
-        workShift.setEndTime(workShiftRequest.getEndTime());
-        workShift.setCapacity(workShiftRequest.getCapacity());
+        workShift.setName(WorkShiftDTO.getName());
+        workShift.setDescription(WorkShiftDTO.getDescription());
+        workShift.setStart(WorkShiftDTO.getStart());
+        workShift.setEndTime(WorkShiftDTO.getEndTime());
+        workShift.setCapacity(WorkShiftDTO.getCapacity());
         workShiftRepository.save(workShift);
     }
 
@@ -138,10 +143,10 @@ public class WorkShiftService {
                 .collect(toList());
     }
 
-    public List<WorkShiftResponse> getShiftsByEmployee(String email) {
+    public List<WorkShiftDTO> getShiftsByEmployee(String email) {
         return workShiftRepository.findAll().stream()
                 .filter(workShift -> workShift.getEmployees().contains(email))
-                .map(this::mapToWorkShiftResponse)
+                .map(this::mapToWorkShiftDTO)
                 .toList();
     }
 
