@@ -78,4 +78,8 @@ public class UserService {
     public List<UserDTO> getAllUserWithsIds(List<Long> employyIds) {
         return employyIds.stream().map(this::getUserWithId).filter(Objects::nonNull).toList();
     }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 }
