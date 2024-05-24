@@ -26,15 +26,25 @@ public class Performance {
     private String description;
     private Integer duration;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "performance_shifts", joinColumns = @JoinColumn(name = "performance_id"))
     @Column(name = "shift_ids")
     private List<Long> workShiftsIds = new ArrayList<>();
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "performance_dates", joinColumns = @JoinColumn(name = "performance_id"))
     @Column(name = "dates")
     private Map<LocalDateTime, LocalDateTime> dates;
 
-
+@Override
+    public String toString(){
+        return "Performance{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", duration=" + duration +
+                ", workShiftsIds=" + workShiftsIds +
+                ", dates=" + dates +
+                '}';
+    }
 }

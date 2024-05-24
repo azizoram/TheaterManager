@@ -45,7 +45,7 @@ public class WorkShiftController {
         workShiftService.deleteWorkShift(id);
     }
 
-    @PutMapping("/update/{id}")
+    @PostMapping("/update/{id}")
     @ResponseStatus(HttpStatus.OK)
     public void updateWorkShift(@PathVariable Long id, @RequestBody WorkShiftDTO WorkShiftDTO) {
         workShiftService.updateWorkShift(id, WorkShiftDTO);

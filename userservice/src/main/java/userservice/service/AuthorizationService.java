@@ -34,7 +34,7 @@ public class AuthorizationService {
 
     private final WebClient.Builder webClientBuilder;
 
-    private final String keycloakUrl = "http://localhost:8069";
+    private final String keycloakUrl = "http://keycloak:8080";
     private final String clientId = "spring-cloud-client";
     private String clientSecret = null;
     private final String realm = "theater-manager-realm";
@@ -64,7 +64,7 @@ public class AuthorizationService {
 
     private String getUserToken(User user) {
         // call i vanus
-        WebClient webClient = WebClient.builder().baseUrl("http://localhost:8069").build();
+        WebClient webClient = WebClient.builder().baseUrl(keycloakUrl).build();
 
 
         String result = webClient.post()

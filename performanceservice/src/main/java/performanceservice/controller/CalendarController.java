@@ -35,6 +35,7 @@ public class CalendarController {
         return ResponseEntity.ok(performances);
     }
 
+    @DeleteMapping("removePerformance/{year}/{month}/{performanceId}")
     public ResponseEntity<Void> removePerformanceFromMonth(
             @PathVariable int year,
             @PathVariable int month,

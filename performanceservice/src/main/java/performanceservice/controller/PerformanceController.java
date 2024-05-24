@@ -49,8 +49,8 @@ public class PerformanceController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Performance>> getAllPerformances() {
-        return ResponseEntity.ok(performanceService.getAllPerformances());
+    public ResponseEntity<List<PerformanceDTO>> getAllPerformances() {
+        return ResponseEntity.ok(performanceService.getAllPerformances().stream().map(PerformanceDTO::new).toList());
     }
 
     @PostMapping("/{performanceId}/shifts/{shiftId}")

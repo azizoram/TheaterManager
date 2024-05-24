@@ -1,5 +1,6 @@
 package performanceservice.service;
 
+import jakarta.transaction.Transactional;
 import performanceservice.dto.PerformanceDTO;
 import performanceservice.dto.PerformanceRequest;
 import performanceservice.dto.WorkShiftDTO;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class PerformanceService {
     private final WebClient.Builder webClient;
     private final PerformanceRepository performanceRepository;
@@ -33,7 +35,7 @@ public class PerformanceService {
         List<WorkShift> workShifts = shiftIds.stream()
                 .map(shiftId -> webClient.build()
                         .get()
-                        .uri("http://localhost:8081/api/workshift/" + shiftId)
+                        .uri("http://workshift/api/workshift/" + shiftId)
                         .retrieve()
                         .bodyToMono(WorkShift.class)
                         .block())
@@ -49,7 +51,7 @@ public class PerformanceService {
         return performance.getWorkShiftsIds().stream()
                 .map(shiftId -> webClient.build()
                         .get()
-                        .uri("http://localhost:8081/api/workshift/" + shiftId)
+                        .uri("http://workshiftservice/api/workshift/" + shiftId)
                         .retrieve()
                         .bodyToMono(WorkShiftDTO.class)
                         .block())
@@ -107,7 +109,7 @@ public class PerformanceService {
         Performance performance = getPerformance(performanceId);
         WorkShiftDTO shift = webClient.build()
                 .get()
-                .uri("http://localhost:8081/api/workshift/" + shiftId)
+                .uri("http://workshiftservice/api/workshift/" + shiftId)
                 .retrieve()
                 .bodyToMono(WorkShiftDTO.class)
                 .block();

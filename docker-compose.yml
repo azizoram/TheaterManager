@@ -1,26 +1,21 @@
 version: '3.5'
 
-services:
-  postgres:
-    container_name: postgres_container
-    image: postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      PGDATA: /data/postgres
-    ports:
-      - "5433:5432"
-    restart: unless-stopped
+networks:
+  theater-management-network:
+    driver: bridge
 
+services:
   postgres_exchange:
     container_name: postgres_container_exchange
     image: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      PGDATA: /data/postgres_exchange
+      PGDATA: /var/lib/postgresql/data/pgdata_exchange
     ports:
       - "5050:5432"
+    networks:
+      - theater-management-network
     restart: unless-stopped
 
   postgres_performance:
@@ -29,9 +24,11 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      PGDATA: /data/postgres_performance
+      PGDATA: /var/lib/postgresql/data/pgdata_performance
     ports:
       - "5051:5432"
+    networks:
+      - theater-management-network
     restart: unless-stopped
 
   postgres_userservice:
@@ -40,66 +37,51 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      PGDATA: /data/userservice
+      PGDATA: /var/lib/postgresql/data/pgdata_userservice
     ports:
       - "6051:5432"
+    networks:
+      - theater-management-network
     restart: unless-stopped
 
-#  server:
-#    build: ./workshiftservice
-#    ports:
-#      - "8080:8080"
-#    environment:
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5434/postgres
-#
-#volumes:
-#  postgres_data:
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    networks:
+      - theater-management-network
+    restart: unless-stopped
 
-#  discovery-server:
-##    image: microservices-tutorial/discovery-server:latest
-#    container_name: discovery-server
-#    ports:
-#      - "8761:8761"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#    depends_on:
-#      - zipkin
+  workshiftservice:
+    container_name: workshiftservice
+    build: ./workshiftservice
+    ports:
+      - "8092:8088"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - postgres
+      - discovery-server
+    networks:
+      - theater-management-network
+    restart: unless-stopped
 
-  ## Keycloak Config with Mysql database
-#  keycloak-mysql:
-#    container_name: keycloak-mysql
-#    image: mysql:5.7
-#    volumes:
-#      - ./mysql_keycloak_data:/var/lib/mysql
-#    environment:
-#      MYSQL_ROOT_PASSWORD: root
-#      MYSQL_DATABASE: keycloak
-#      MYSQL_USER: keycloak
-#      MYSQL_PASSWORD: password
-#
-#  keycloak:
-#    container_name: keycloak
-#    image: quay.io/keycloak/keycloak:18.0.0
-#    command: ["start-dev", "--import-realm", "--features=scripts" ]
-#    volumes:
-##      - ./keycloak/custom-protocol-mapper.jar:/opt/keycloak/standalone/deployments/cust
-#      - ./keycloak/custom-protocol-mapper.jar:/opt/keycloak/providers/custom-protocol-mapper.jar
-#
-#    environment:
-#      DB_VENDOR: MYSQL
-#      DB_ADDR: mysql
-#      DB_DATABASE: keycloak
-#      DB_USER: keycloak
-#      DB_PASSWORD: password
-#      KEYCLOAK_ADMIN: admin
-#      KEYCLOAK_ADMIN_PASSWORD: admin
-#      KC_FEATURES: scripts,token-exchange
-#      KEYCLOAK_FEATURES: scripts,token-exchange
-#
-#    ports:
-#      - "8069:8080"
-#    depends_on:
-#      - keycloak-mysql
+  discovery-server:
+    build: ./discoveryserver
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - theater-management-network
+    restart: unless-stopped
 
   mysql:
     image: mysql:8.0
@@ -111,8 +93,63 @@ services:
       MYSQL_PASSWORD: keycloak
     volumes:
       - mysql-data:/var/lib/mysql
-  #    networks:
-  #      - keycloak-network
+    networks:
+      - theater-management-network
+#
+  performanceservice:
+    container_name: performanceservice
+    build: ./performanceservice
+    ports:
+      - "8093:8880"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_performance:5432/postgres
+    depends_on:
+      - postgres_performance
+      - discovery-server
+    networks:
+      - theater-management-network
+
+  userservice:
+    container_name: userservice
+    build: ./userservice
+    ports:
+      - "8095:8089"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_userservice:5432/postgres
+    depends_on:
+      - postgres_userservice
+      - discovery-server
+      - keycloak
+    networks:
+      - theater-management-network
+
+  exchangeservice:
+    container_name: exchangeservice
+    build: ./exchangeservice
+    ports:
+      - "8097:8181"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_exchange:5432/postgres
+    depends_on:
+      - postgres_exchange
+      - discovery-server
+    networks:
+      - theater-management-network
+
+  api-gateway:
+    container_name: api-gateway
+    build: ./api-gateway
+    ports:
+      - "8098:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=TRACE
+    depends_on:
+      - discovery-server
+      - keycloak
+    networks:
+      - theater-management-network
+
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.4
@@ -134,8 +171,9 @@ services:
       - 8069:8080
     depends_on:
       - mysql
-  #    networks:
-  #      - keycloak-network
+    networks:
+      - theater-management-network
 
 volumes:
   mysql-data:
+  postgres_data:
