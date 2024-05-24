@@ -70,6 +70,15 @@ public class ExchangeController {
         }
     }
 
+    @PostMapping("/confirmDirect/{requestId}")
+    public ResponseEntity<String> confirmDirectExchange(@PathVariable Long requestId) {
+        try {
+            return ResponseEntity.ok(exchangeService.confirmDirectExchange(requestId));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
     // next step agree/confirm endpoints for direct and public requests, then go verify
     // note that internal service logic should update workshift service on agreement 

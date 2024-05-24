@@ -55,7 +55,7 @@ public class ExchangeService {
     }
 
     public List<ShiftRequestDTO> getRequestsByConsumer(Long consumerId) {
-        return requestRepository.findAllByConsumer(consumerId).stream().map(ShiftRequestDTO::new).toList();
+        return directRepository.findAllByConsumer(consumerId).stream().map(ShiftRequestDTO::new).toList();
     }
 
     public List<ShiftRequestDTO> getRequestsByAuthor(Long authorId) {
@@ -73,7 +73,6 @@ public class ExchangeService {
         workShiftDTO.setEmployees(author);
 
         try {
-            // Send POST request to update work shift
             webClient.build()
                     .post()
                     .uri(workshift_api + "/update/" + shiftId)
@@ -82,6 +81,30 @@ public class ExchangeService {
                     .toBodilessEntity()
                     .block();
             requestRepository.delete(request);
+            return "Exchange confirmed!";
+        } catch (Exception e) {
+            return "Failed to confirm exchange: " + e.getMessage();
+        }
+    }
+
+    public String confirmDirectExchange(Long requestId) {
+        ExchangeDirect request = directRepository.findById(requestId).orElse(null);
+        if (request == null) {
+            return "Request not found";
+        }
+        Long shiftId = request.getShiftId();
+        Map<Long, String> author = Map.of(request.getAuthorId(), request.getRole());
+        WorkShiftDTO workShiftDTO = new WorkShiftDTO();
+        workShiftDTO.setEmployees(author);
+        try {
+            webClient.build()
+                    .post()
+                    .uri(workshift_api + "/update/" + shiftId)
+                    .body(BodyInserters.fromValue(workShiftDTO))
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+            directRepository.delete(request);
             return "Exchange confirmed!";
         } catch (Exception e) {
             return "Failed to confirm exchange: " + e.getMessage();

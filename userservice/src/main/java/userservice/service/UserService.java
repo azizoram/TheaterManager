@@ -2,6 +2,7 @@ package userservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -22,7 +23,7 @@ public class UserService {
     private final PermissionService permissionService;
     private final RoleService roleService;
     private final UserRepository userRepository;
-    private final WebClient.Builder webClient;
+    private final PasswordEncoder passwordEncoder;
 
     public void saveOrUpdate(User user) {
         userRepository.save(user);
@@ -34,7 +35,7 @@ public class UserService {
                 .surname(userRequest.getSurname())
                 .login(userRequest.getLogin())
                 .email(userRequest.getEmail())
-                .password(userRequest.getPassword())
+                .password(passwordEncoder.encode(userRequest.getPassword()))
                 .phone(userRequest.getPhone())
                 .build();
     }
@@ -64,7 +65,6 @@ public class UserService {
         user.setSurname(userRequest.getSurname());
         user.setLogin(userRequest.getLogin());
         user.setEmail(userRequest.getEmail());
-        user.setPassword(userRequest.getPassword());
         user.setPhone(userRequest.getPhone());
         permissionService.addPermissionsToUser(user, userRequest.getUserPermissions());
         roleService.addRolesToUser(user, userRequest.getUserRoles());

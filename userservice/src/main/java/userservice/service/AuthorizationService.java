@@ -3,6 +3,7 @@ package userservice.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,9 @@ import reactor.netty.http.client.HttpClient;
 import userservice.exception.UnAuthorizedException;
 import userservice.model.User;
 import org.springframework.http.HttpStatus;
+import userservice.utils.KeycloakAdminProperties;
+import userservice.utils.KeycloakClientSecretHelper;
+
 import java.time.Duration;
 import java.util.Objects;
 
@@ -32,14 +36,17 @@ public class AuthorizationService {
 
     private final String keycloakUrl = "http://localhost:8069";
     private final String clientId = "spring-cloud-client";
-    private final String clientSecret = "EjEekrR1LUfOMhGsfV6juIW0npmF58Kb";
+    private String clientSecret = null;
     private final String realm = "theater-manager-realm";
-
+    private final KeycloakAdminProperties keycloakAdminProperties;
     @Autowired
-    AuthorizationService (@Lazy UserService userService, PasswordEncoder encoder, WebClient.Builder webclientBuilder){
+    AuthorizationService (@Lazy UserService userService, PasswordEncoder encoder, WebClient.Builder webclientBuilder, KeycloakAdminProperties keycloakAdminProperties){
         this.userService = userService;
         this.encoder = encoder;
         this.webClientBuilder = webclientBuilder;
+        this.keycloakAdminProperties = keycloakAdminProperties;
+        this.clientSecret = KeycloakClientSecretHelper.retrieveSecretKey(keycloakUrl, realm, clientId, this.webClientBuilder, keycloakAdminProperties);
+
     }
 
 

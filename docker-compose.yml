@@ -12,6 +12,17 @@ services:
       - "5433:5432"
     restart: unless-stopped
 
+  postgres_exchange:
+    container_name: postgres_container_exchange
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres_exchange
+    ports:
+      - "5050:5432"
+    restart: unless-stopped
+
   postgres_performance:
     container_name: performance_postgres_container
     image: postgres
