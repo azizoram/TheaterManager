@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class PerformanceService {
-    private final WebClient webClient;
+    private final WebClient.Builder webClient;
     private final PerformanceRepository performanceRepository;
 
     // Mb useless method, because we can get shifts from performance
@@ -31,7 +31,7 @@ public class PerformanceService {
 
         List<Long> shiftIds = performance.getWorkShiftsIds();
         List<WorkShift> workShifts = shiftIds.stream()
-                .map(shiftId -> webClient
+                .map(shiftId -> webClient.build()
                         .get()
                         .uri("http://localhost:8081/api/workshift/" + shiftId)
                         .retrieve()
@@ -47,7 +47,7 @@ public class PerformanceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Performance not found"));
 
         return performance.getWorkShiftsIds().stream()
-                .map(shiftId -> webClient
+                .map(shiftId -> webClient.build()
                         .get()
                         .uri("http://localhost:8081/api/workshift/" + shiftId)
                         .retrieve()
@@ -105,7 +105,7 @@ public class PerformanceService {
 
     public Performance addShiftToPerformance(Long performanceId, Long shiftId) {
         Performance performance = getPerformance(performanceId);
-        WorkShiftDTO shift = webClient
+        WorkShiftDTO shift = webClient.build()
                 .get()
                 .uri("http://localhost:8081/api/workshift/" + shiftId)
                 .retrieve()

@@ -2,6 +2,7 @@ package workshiftservice.controller;
 
 import org.springframework.http.ResponseEntity;
 import workshiftservice.dto.EmployeesResponse;
+import workshiftservice.dto.ShiftChangeRequestDTO;
 import workshiftservice.dto.WorkShiftDTO;
 import workshiftservice.dto.WorkShiftDTO;
 
@@ -44,7 +45,7 @@ public class WorkShiftController {
         workShiftService.deleteWorkShift(id);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     @ResponseStatus(HttpStatus.OK)
     public void updateWorkShift(@PathVariable Long id, @RequestBody WorkShiftDTO WorkShiftDTO) {
         workShiftService.updateWorkShift(id, WorkShiftDTO);
@@ -85,6 +86,12 @@ public class WorkShiftController {
     public List<EmployeesResponse> getAllEmployeesFromShift(@PathVariable Long shiftId) {
         return workShiftService.getAllEmployeeFromShift(shiftId);
     }
+
+    @PostMapping("/verifyRequest")
+    public ResponseEntity<String> verifyChangeShiftRequest(@RequestBody ShiftChangeRequestDTO workShiftDTO) {
+        return ResponseEntity.ok(workShiftService.verifyChangeShiftRequest(workShiftDTO));
+    }
+
 
 }
 

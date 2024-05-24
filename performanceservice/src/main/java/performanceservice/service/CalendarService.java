@@ -31,42 +31,67 @@ public class CalendarService {
         });
     }
 
+
     public void addPerformanceToCalendar(YearMonth month, Performance performance) {
         Calendar calendar = getOrCreateCalendar(month);
-//        if (calendar.getPerformances() == null) {
-//            calendar.setPerformances(new ArrayList<>());
-//        }
+        if (calendar.getPerformances().contains(performance)) {
+            throw new IllegalArgumentException("Performance is already in the calendar");
+        }
         calendar.getPerformances().add(performance);
         calendarRepository.save(calendar);
     }
+
+//    public void addPerformanceToCalendarById(YearMonth month, Long performanceId) {
+//        Performance performance = performanceRepository.findById(performanceId)
+//                .orElseThrow(() -> new EntityNotFoundException("Performance not found"));
+//
+//        Calendar calendar = getOrCreateCalendar(month);
+//        List<Performance> performances = calendar.getPerformances();
+//        if (calendar.getPerformances().contains(performance)) {
+//            throw new IllegalArgumentException("Performance is already in the calendar");
+//        }
+//
+//        boolean isWithinMonth = performance.getDates().entrySet().stream()
+//                .anyMatch(entry -> {
+//                    LocalDateTime startDateTime = entry.getKey();
+//                    LocalDateTime endDateTime = entry.getValue();
+//                    LocalDate startDate = startDateTime.toLocalDate();
+//                    LocalDate endDate = endDateTime.toLocalDate();
+//                    return (startDate.isBefore(month.atEndOfMonth().plusDays(1)) && endDate.isAfter(month.atDay(1).minusDays(1)));
+//                });
+//
+//        if (!isWithinMonth) {
+//            throw new IllegalArgumentException("Performance dates are out of the specified month");
+//        }
+//        addPerformanceToCalendar(month, performance);
+//    }
 
     public void addPerformanceToCalendarById(YearMonth month, Long performanceId) {
         Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(() -> new EntityNotFoundException("Performance not found"));
 
+        validatePerformanceDatesInMonth(performance, month);
+
         Calendar calendar = getOrCreateCalendar(month);
-        List<Performance> performances = calendar.getPerformances();
         if (calendar.getPerformances().contains(performance)) {
             throw new IllegalArgumentException("Performance is already in the calendar");
         }
+        calendar.getPerformances().add(performance);
+        calendarRepository.save(calendar);
+    }
 
+    private void validatePerformanceDatesInMonth(Performance performance, YearMonth month) {
         boolean isWithinMonth = performance.getDates().entrySet().stream()
                 .anyMatch(entry -> {
-                    LocalDateTime startDateTime = entry.getKey();
-                    LocalDateTime endDateTime = entry.getValue();
-                    LocalDate startDate = startDateTime.toLocalDate();
-                    LocalDate endDate = endDateTime.toLocalDate();
-
-                    // Check if the performance date range overlaps with the specified month
+                    LocalDate startDate = entry.getKey().toLocalDate();
+                    LocalDate endDate = entry.getValue().toLocalDate();
                     return (startDate.isBefore(month.atEndOfMonth().plusDays(1)) && endDate.isAfter(month.atDay(1).minusDays(1)));
                 });
 
         if (!isWithinMonth) {
             throw new IllegalArgumentException("Performance dates are out of the specified month");
         }
-        addPerformanceToCalendar(month, performance);
     }
-
 
 
     public List<Performance> getPerformancesForMonth(YearMonth month) {
@@ -90,14 +115,28 @@ public class CalendarService {
         calendarRepository.save(calendar);
     }
 
+//    public void updatePerformanceInCalendar(YearMonth yearMonth, Long performanceId, PerformanceRequest performanceRequest) {
+//        Calendar calendar = getOrCreateCalendar(yearMonth);
+//        Performance performance = performanceRepository.findById(performanceId).orElseThrow();
+//        performance.setName(performanceRequest.getName());
+//        performance.setDescription(performanceRequest.getDescription());
+//        performance.setDuration(performanceRequest.getDuration());
+//        Map<LocalDateTime, LocalDateTime> dates = Map.of(performanceRequest.getStart(), performanceRequest.getEndTime());
+//        performance.setDates(dates);
+//        calendarRepository.save(calendar);
+//    }
+
     public void updatePerformanceInCalendar(YearMonth yearMonth, Long performanceId, PerformanceRequest performanceRequest) {
+        Performance performance = performanceRepository.findById(performanceId)
+                .orElseThrow(() -> new EntityNotFoundException("Performance not found"));
         Calendar calendar = getOrCreateCalendar(yearMonth);
-        Performance performance = performanceRepository.findById(performanceId).orElseThrow();
+        if (!calendar.getPerformances().contains(performance)) {
+            throw new IllegalArgumentException("Performance is not in the calendar");
+        }
         performance.setName(performanceRequest.getName());
         performance.setDescription(performanceRequest.getDescription());
         performance.setDuration(performanceRequest.getDuration());
-        Map<LocalDateTime, LocalDateTime> dates = Map.of(performanceRequest.getStart(), performanceRequest.getEndTime());
-        performance.setDates(dates);
-        calendarRepository.save(calendar);
+        performance.setDates(Map.of(performanceRequest.getStart(), performanceRequest.getEndTime()));
+        performanceRepository.save(performance);
     }
 }

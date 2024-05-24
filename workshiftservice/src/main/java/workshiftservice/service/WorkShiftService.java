@@ -1,10 +1,10 @@
 package workshiftservice.service;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import workshiftservice.dto.EmployeesResponse;
+import workshiftservice.dto.ShiftChangeRequestDTO;
 import workshiftservice.dto.WorkShiftDTO;
 import workshiftservice.exception.NoSuchShiftException;
 import workshiftservice.model.WorkShift;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 
 @Service
@@ -157,4 +158,28 @@ public class WorkShiftService {
                 .toList();
     }
 
+    public String verifyChangeShiftRequest(ShiftChangeRequestDTO workShiftDTO) {
+        Objects.requireNonNull(workShiftDTO.getShiftId());
+        Optional<WorkShift> workShift = workShiftRepository.findById(workShiftDTO.getShiftId());
+        if (workShift.isEmpty()) {
+            return "Shift not found";
+        }
+        Objects.requireNonNull(workShiftDTO.getAuthorId());
+        Long employeeId = workShiftDTO.getAuthorId();
+        if (!workShift.get().getEmployees().containsKey(employeeId)) {
+            return "Employee not in shift";
+        }
+
+        Long askedEmployeeId = workShiftDTO.getConsumer();
+        if (workShift.get().getEmployees().containsKey(askedEmployeeId)) {
+            return "Employee is already on shift";
+        }
+
+        String requestedRole = workShiftDTO.getRole();
+        Objects.requireNonNull(requestedRole);
+        String role = workShift.get().getEmployees().get(employeeId);
+
+        return requestedRole.equals(role) ? "OK" : "Requested role does not match employee role";
+
+    }
 }

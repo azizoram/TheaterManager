@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 @Lazy
 public class ExternalService {
 
-    private static final String workshift_api = "http://localhost:8081/api/workshift/";
-    private static final String performance_api = "http://localhost:8082/api/performances/";
+    private static final String workshift_api = "http://workshift/api/";
+    private static final String performance_api = "http://performances//api/";
 
     private final WebClient.Builder webClient;
 
